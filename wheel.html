@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glücksrad – Jessi! 🎉</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0008;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* ── Particle + flying-element layers ── */
+    #fx-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 100;
+    }
+    #fx-flying {
+      position: fixed; inset: 0; overflow: hidden;
+      pointer-events: none; z-index: 95;
+    }
+
+    /* ── Header ── */
+    header { text-align: center; }
+
+    h1 {
+      font-size: 1.8rem; font-weight: 800;
+      background: linear-gradient(135deg, #e91e8c, #ff9de2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: rgba(255,182,220,.5);
+      font-size: .85rem; letter-spacing: 3px;
+      text-transform: uppercase; margin-top: 4px;
+    }
+
+    /* ── Wheel wrap ── */
+    .wheel-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    #wheel {
+      width:  min(80vw, 76vh, 440px);
+      height: min(80vw, 76vh, 440px);
+      border-radius: 50%;
+      display: block;
+      box-shadow:
+        0 0 0 5px rgba(255,105,180,.25),
+        0 0 50px rgba(255,105,180,.18),
+        0 0 90px rgba(233,30,140,.1);
+    }
+
+    .wheel-pointer {
+      position: absolute; top: -18px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem; line-height: 1; z-index: 20;
+      color: #ff69b4;
+      filter: drop-shadow(0 0 10px rgba(255,105,180,.9));
+    }
+
+    /* ── Spin button ── */
+    #spin-btn {
+      background: linear-gradient(135deg, #e91e8c, #ff6fa8);
+      color: #fff; border: none;
+      padding: 15px 46px; border-radius: 50px;
+      font-size: 1.15rem; font-weight: 700;
+      cursor: pointer; letter-spacing: .5px;
+      box-shadow: 0 4px 22px rgba(233,30,140,.5), 0 0 40px rgba(255,105,180,.18);
+      transition: transform .15s, box-shadow .15s, opacity .2s;
+      position: relative; z-index: 10;
+    }
+    #spin-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(233,30,140,.65), 0 0 50px rgba(255,105,180,.28);
+    }
+    #spin-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ── Result bottom-sheet ── */
+    .result-card {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(13,0,8,.99), rgba(13,0,8,.92));
+      backdrop-filter: blur(12px);
+      padding: 28px 24px 40px;
+      text-align: center; z-index: 150;
+      transform: translateY(100%);
+      transition: transform .5s cubic-bezier(.4,0,.2,1);
+      border-top: 1px solid rgba(255,105,180,.2);
+    }
+    .result-card.visible { transform: translateY(0); }
+
+    .result-emoji { font-size: 4rem; line-height: 1.2; }
+
+    .result-title {
+      font-size: 1.9rem; font-weight: 800; margin: 8px 0 6px;
+      background: linear-gradient(135deg, #e91e8c, #ff9de2);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .result-msg {
+      color: rgba(255,182,220,.7);
+      font-size: 1rem; margin-bottom: 20px; line-height: 1.5;
+    }
+
+    .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-action {
+      background: linear-gradient(135deg, #e91e8c, #ff6fa8);
+      color: #fff; border: none;
+      padding: 13px 32px; border-radius: 50px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(233,30,140,.45);
+      transition: transform .15s;
+    }
+    .btn-action:hover { transform: translateY(-2px); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid rgba(255,105,180,.4);
+      color: rgba(255,182,220,.85);
+      padding: 12px 28px; border-radius: 50px;
+      font-size: .95rem; font-weight: 600; cursor: pointer;
+      transition: border-color .2s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,105,180,.8); }
+
+    .hidden { display: none !important; }
+
+    /* ── Flying / falling DOM elements ── */
+    .fly-el {
+      position: absolute; pointer-events: none;
+      animation: fly-across var(--dur, 2.2s) linear forwards;
+    }
+    @keyframes fly-across {
+      from { transform: translateX(-5vw) rotate(0deg);   opacity: 1; }
+      to   { transform: translateX(115vw) rotate(540deg); opacity: .7; }
+    }
+
+    .fall-el {
+      position: absolute; pointer-events: none;
+      animation: fall-down var(--dur, 2.5s) ease-in forwards;
+    }
+    @keyframes fall-down {
+      from { opacity: 1; transform: translateY(0) rotate(0deg); }
+      to   { opacity: .4; transform: translateY(110vh) rotate(720deg); }
+    }
+
+    /* ── Body animations ── */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      15%,45%,75% { transform: translateX(-9px) rotate(-1deg); }
+      30%,60%,90% { transform: translateX(9px) rotate(1deg); }
+    }
+    body.shaking { animation: shake .65s ease; }
+
+    @keyframes red-flash {
+      0%,100% { background-color: #0d0008; }
+      35% { background-color: #380000; }
+    }
+    body.red-flash { animation: red-flash .6s ease; }
+
+    @keyframes rainbow-cycle {
+      0%   { background-color: #0d0008; }
+      14%  { background-color: #200040; }
+      28%  { background-color: #002060; }
+      42%  { background-color: #003020; }
+      57%  { background-color: #402000; }
+      71%  { background-color: #400030; }
+      85%  { background-color: #200040; }
+      100% { background-color: #0d0008; }
+    }
+    body.rainbow-mode { animation: rainbow-cycle 3.2s ease-in-out; }
+
+    /* ── Nav buttons ── */
+    .nav-btn {
+      position: fixed; bottom: 22px; z-index: 500;
+      background: rgba(255,105,180,.08);
+      border: 1.5px solid rgba(255,105,180,.3);
+      color: rgba(255,182,220,.75);
+      padding: 10px 22px; border-radius: 50px;
+      font-size: .88rem; font-weight: 600;
+      cursor: pointer; letter-spacing: .5px;
+      transition: background .2s, border-color .2s, transform .15s;
+      backdrop-filter: blur(6px);
+    }
+    .nav-btn:hover {
+      background: rgba(255,105,180,.2);
+      border-color: rgba(255,105,180,.65);
+      transform: translateY(-2px);
+    }
+    .nav-back { left: 22px; }
+    .nav-fwd  { right: 22px; }
+
+    /* ── Jackpot win screen ── */
+    #jackpot-screen {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(13,0,8,.95);
+      z-index: 200;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; text-align: center; padding: 40px;
+    }
+    #jackpot-screen.visible {
+      display: flex;
+      animation: ws-appear .45s ease forwards;
+    }
+    .ws-emoji {
+      font-size: 5rem;
+      animation: ws-bounce 1.2s ease-in-out infinite;
+      filter: drop-shadow(0 0 22px rgba(255,105,180,.6));
+    }
+    .ws-title {
+      font-size: 2.4rem; font-weight: 800;
+      background: linear-gradient(135deg, #e91e8c, #ff9de2);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .ws-sub { color: rgba(255,182,220,.6); font-size: 1rem; letter-spacing: 1px; }
+    .ws-btn {
+      margin-top: 8px;
+      background: linear-gradient(135deg, #e91e8c, #ff6fa8);
+      color: #fff; border: none;
+      padding: 14px 40px; border-radius: 50px;
+      font-size: 1.1rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(233,30,140,.5);
+      transition: transform .15s;
+    }
+    .ws-btn:hover { transform: translateY(-2px); }
+    @keyframes ws-appear {
+      from { opacity: 0; transform: scale(.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes ws-bounce {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-18px); }
+    }
+
+    /* ── Main-content dizzy ── */
+    @keyframes dizzy-wobble {
+      0%   { transform: rotate(0deg)   scale(1); }
+      20%  { transform: rotate(12deg)  scale(1.04); }
+      40%  { transform: rotate(-8deg)  scale(.97); }
+      60%  { transform: rotate(6deg)   scale(1.02); }
+      80%  { transform: rotate(-3deg)  scale(.99); }
+      100% { transform: rotate(0deg)   scale(1); }
+    }
+    #main-content.dizzy { animation: dizzy-wobble 1.3s cubic-bezier(.4,0,.2,1); }
+  </style>
+</head>
+<body>
+
+  <canvas id="fx-canvas"></canvas>
+  <div id="fx-flying"></div>
+
+  <!-- Jackpot win screen (same design as all other games) -->
+  <div id="jackpot-screen">
+    <div class="ws-emoji">🏆</div>
+    <div class="ws-title">JACKPOT!!</div>
+    <p class="ws-sub">Du hast gewonnen! Weiter zum nächsten Abenteuer!</p>
+    <button class="ws-btn" onclick="navigate('next_game.html')">Weiter&nbsp;→</button>
+  </div>
+
+  <!-- Navigation -->
+  <button class="nav-btn nav-back" onclick="navigate('game.html')">←&nbsp;Zurück</button>
+  <button class="nav-btn nav-fwd"  onclick="navigate('next_game.html')">Weiter&nbsp;→</button>
+
+  <div id="main-content" style="display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;">
+    <header>
+      <h1>Glücksrad&nbsp;🎰</h1>
+      <p class="subtitle">Dreh das Rad deines Schicksals!</p>
+    </header>
+
+    <div class="wheel-wrap">
+      <div class="wheel-pointer">▼</div>
+      <canvas id="wheel" width="500" height="500"></canvas>
+    </div>
+
+    <button id="spin-btn">Drehen!&nbsp;🎰</button>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <div id="result-emoji" class="result-emoji"></div>
+    <div id="result-title" class="result-title"></div>
+    <div id="result-msg"   class="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn-action" id="btn-again">Nochmal drehen&nbsp;🔄</button>
+    </div>
+  </div>
+
+  <script>
+  // ── Segment definitions ───────────────────────────────────────────────────
+  const SEGMENTS = [
+    {
+      id: 'jackpot', label: 'JACKPOT!', emoji: '🏆',
+      color: '#b8860b',
+      desc: 'JACKPOT!! Du kommst ins nächste Level! 🎉',
+    },
+    {
+      id: 'plus', label: '+100€', emoji: '💰',
+      color: '#1a5c2e',
+      desc: 'Herzlichen Glückwunsch! Du bist jetzt reich!',
+    },
+    {
+      id: 'minus', label: '– 50 €', emoji: '💸',
+      color: '#7a1515',
+      desc: 'Au weia… das hätte nicht passieren sollen. 😅',
+    },
+    {
+      id: 'rainbow', label: 'Bunt!', emoji: '🌈',
+      color: '#4a1280',
+      desc: 'Alles leuchtet in Regenbogenfarben! 🎨',
+    },
+    {
+      id: 'fireworks', label: 'Feuerwerk!', emoji: '🎆',
+      color: '#12184a',
+      desc: 'Pew pew pew! ✨ Feuerwerk für Jessi!',
+    },
+    {
+      id: 'cats', label: 'Katzen!', emoji: '🐱',
+      color: '#7a1255',
+      desc: 'Katzensturm!! Die Katzen kommen!! 🐱🐱🐱',
+    },
+    {
+      id: 'again', label: 'Nochmal!', emoji: '🔄',
+      color: '#6a3010',
+      desc: 'Du darfst nochmal drehen! Viel Glück! 🍀',
+    },
+    {
+      id: 'dizzy', label: 'Drehtanz!', emoji: '💫',
+      color: '#2a1065',
+      desc: 'Alles dreht sich! Ist dir schwindelig? 😵‍💫',
+    },
+  ];
+
+  const N         = SEGMENTS.length;
+  const SEG_RAD   = (2 * Math.PI) / N;
+  const W         = 500;
+  const CX = W / 2, CY = W / 2;
+  const R         = W / 2 - 20;
+
+  // ── Wheel canvas ──────────────────────────────────────────────────────────
+  const wCanvas = document.getElementById('wheel');
+  const wCtx    = wCanvas.getContext('2d');
+  let   angle   = 0;
+  let   spinning = false;
+
+  function drawWheel(a) {
+    wCtx.clearRect(0, 0, W, W);
+
+    SEGMENTS.forEach((seg, i) => {
+      const s = a + i * SEG_RAD - Math.PI / 2;
+      const e = s + SEG_RAD;
+      const m = s + SEG_RAD / 2;
+
+      // Segment
+      wCtx.beginPath();
+      wCtx.moveTo(CX, CY);
+      wCtx.arc(CX, CY, R, s, e);
+      wCtx.closePath();
+      wCtx.fillStyle = seg.color;
+      wCtx.fill();
+      wCtx.strokeStyle = 'rgba(255,255,255,.1)';
+      wCtx.lineWidth = 1.5;
+      wCtx.stroke();
+
+      // Emoji near rim
+      wCtx.save();
+      wCtx.translate(CX, CY);
+      wCtx.rotate(m);
+      wCtx.font = `${W * 0.075}px sans-serif`;
+      wCtx.textAlign = 'center';
+      wCtx.textBaseline = 'middle';
+      wCtx.fillText(seg.emoji, R * 0.7, 0);
+      wCtx.restore();
+
+      // Short label closer to center
+      wCtx.save();
+      wCtx.translate(CX, CY);
+      wCtx.rotate(m);
+      wCtx.font = `bold ${W * 0.036}px 'Segoe UI', sans-serif`;
+      wCtx.fillStyle = 'rgba(255,255,255,.82)';
+      wCtx.textAlign = 'center';
+      wCtx.textBaseline = 'middle';
+      wCtx.fillText(seg.label, R * 0.37, 0);
+      wCtx.restore();
+    });
+
+    // Outer ring
+    wCtx.beginPath();
+    wCtx.arc(CX, CY, R, 0, 2 * Math.PI);
+    wCtx.strokeStyle = 'rgba(255,105,180,.55)';
+    wCtx.lineWidth = 5;
+    wCtx.stroke();
+
+    // Center hub
+    const hub = wCtx.createRadialGradient(CX, CY, 0, CX, CY, 34);
+    hub.addColorStop(0, '#3c001e');
+    hub.addColorStop(1, '#1a0008');
+    wCtx.beginPath();
+    wCtx.arc(CX, CY, 34, 0, 2 * Math.PI);
+    wCtx.fillStyle = hub;
+    wCtx.fill();
+    wCtx.strokeStyle = 'rgba(255,105,180,.7)';
+    wCtx.lineWidth = 2.5;
+    wCtx.stroke();
+
+    wCtx.font = `${W * 0.046}px sans-serif`;
+    wCtx.textAlign = 'center';
+    wCtx.textBaseline = 'middle';
+    wCtx.fillText('✨', CX, CY);
+  }
+
+  drawWheel(0);
+
+  // ── Spin ──────────────────────────────────────────────────────────────────
+  const DURATION = 4400;
+
+  function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function startSpin() {
+    if (spinning) return;
+    spinning = true;
+    hideResult();
+    stopEffects();
+    document.getElementById('spin-btn').disabled = true;
+
+    const target     = Math.floor(Math.random() * N);
+    const laps       = 5 + Math.floor(Math.random() * 4);
+    // base angle that places the center of `target` exactly at the pointer
+    const base       = ((-(target + 0.5) * SEG_RAD - angle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+    const delta      = laps * 2 * Math.PI + base;
+    const startAngle = angle;
+    const startTime  = performance.now();
+
+    function tick(now) {
+      const t = Math.min(1, (now - startTime) / DURATION);
+      angle = startAngle + easeOutQuart(t) * delta;
+      drawWheel(angle);
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        angle = startAngle + delta;
+        drawWheel(angle);
+        spinning = false;
+        onLand(target);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function navigate(url) {
+    document.body.style.transition = 'opacity .35s';
+    document.body.style.opacity    = '0';
+    setTimeout(() => { window.location.href = url; }, 360);
+  }
+
+  function onLand(idx) {
+    const seg = SEGMENTS[idx];
+    setTimeout(() => triggerEffect(seg.id), 300);
+    if (seg.id === 'jackpot') {
+      setTimeout(() => {
+        document.getElementById('jackpot-screen').classList.add('visible');
+      }, 650);
+    } else {
+      setTimeout(() => showResult(seg), 650);
+    }
+  }
+
+  document.getElementById('spin-btn').addEventListener('click', startSpin);
+
+  // ── Result card ───────────────────────────────────────────────────────────
+  function showResult(seg) {
+    document.getElementById('result-emoji').textContent = seg.emoji;
+    document.getElementById('result-title').textContent = seg.label;
+    document.getElementById('result-msg').textContent   = seg.desc;
+
+    const btnAgain = document.getElementById('btn-again');
+
+    if (seg.id === 'again') {
+      btnAgain.classList.add('hidden');
+      setTimeout(() => {
+        hideResult();
+        setTimeout(() => startSpin(), 400);
+      }, 2400);
+    } else {
+      btnAgain.classList.remove('hidden');
+    }
+
+    document.getElementById('result-card').classList.add('visible');
+  }
+
+  function hideResult() {
+    document.getElementById('result-card').classList.remove('visible');
+  }
+
+  document.getElementById('btn-again').addEventListener('click', () => {
+    hideResult();
+    stopEffects();
+    setTimeout(() => {
+      document.getElementById('spin-btn').disabled = false;
+    }, 350);
+  });
+
+  // ── Particle system ───────────────────────────────────────────────────────
+  const fxCanvas = document.getElementById('fx-canvas');
+  const fxCtx    = fxCanvas.getContext('2d');
+  let   fxParts  = [];
+  let   fxActive = false;
+
+  function resizeFx() {
+    fxCanvas.width  = window.innerWidth;
+    fxCanvas.height = window.innerHeight;
+  }
+  resizeFx();
+  window.addEventListener('resize', resizeFx);
+
+  class Particle {
+    constructor(x, y, color, opts = {}) {
+      this.x = x; this.y = y; this.color = color;
+      this.vx    = (Math.random() - .5) * (opts.speed  ?? 10);
+      this.vy    = (Math.random() - .5) * (opts.speed  ?? 10) + (opts.vy0 ?? 0);
+      this.r     = (opts.minR ?? 3) + Math.random() * (opts.rRange ?? 4);
+      this.alpha = 1;
+      this.g     = opts.gravity ?? .22;
+      this.decay = .012 + Math.random() * .01;
+    }
+    step() {
+      this.x += this.vx; this.vy += this.g; this.y += this.vy;
+      this.vx *= .97; this.alpha -= this.decay;
+    }
+    draw(ctx) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.alpha);
+      ctx.fillStyle   = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function fxLoop() {
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    fxParts = fxParts.filter(p => p.alpha > 0);
+    fxParts.forEach(p => { p.step(); p.draw(fxCtx); });
+    if (fxParts.length) requestAnimationFrame(fxLoop);
+    else fxActive = false;
+  }
+
+  function kickFx() {
+    if (!fxActive) { fxActive = true; fxLoop(); }
+  }
+
+  // ── Effects ────────────────────────────────────────────────────────────────
+  const flyBox = document.getElementById('fx-flying');
+  let effectTimers = [];
+
+  function stopEffects() {
+    effectTimers.forEach(clearTimeout);
+    effectTimers = [];
+    document.body.classList.remove('shaking', 'red-flash', 'rainbow-mode');
+    document.getElementById('main-content').classList.remove('dizzy');
+    flyBox.innerHTML = '';
+    fxParts = [];
+  }
+
+  function triggerEffect(id) {
+    const map = {
+      jackpot:   fx_jackpot,
+      plus:      fx_money,
+      minus:     fx_minus,
+      rainbow:   fx_rainbow,
+      fireworks: fx_fireworks,
+      cats:      fx_cats,
+      again:     fx_again,
+      dizzy:     fx_dizzy,
+    };
+    (map[id] ?? (() => {}))();
+  }
+
+  // 🏆 Jackpot — gold confetti burst
+  function fx_jackpot() {
+    const cols = ['#ffd700','#ffec6e','#ff69b4','#e91e8c','#fff','#ff9de2'];
+    for (let i = 0; i < 90; i++) {
+      const p = new Particle(
+        Math.random() * window.innerWidth,
+        Math.random() * window.innerHeight * 0.4,
+        cols[i % cols.length],
+        { speed: 7, vy0: -3, gravity: 0.18, minR: 4, rRange: 5 }
+      );
+      fxParts.push(p);
+    }
+    kickFx();
+  }
+
+  // 💰 +100€ — money rain
+  function fx_money() {
+    const syms = ['💰','💵','💴','🪙','💸'];
+    for (let i = 0; i < 26; i++) {
+      effectTimers.push(setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'fall-el';
+        el.textContent = syms[Math.floor(Math.random() * syms.length)];
+        el.style.cssText = `left:${Math.random()*92}vw;top:-60px;font-size:${1.4+Math.random()*1.6}rem;--dur:${2+Math.random()*1.4}s`;
+        flyBox.appendChild(el);
+        effectTimers.push(setTimeout(() => el.remove(), 4000));
+      }, i * 75));
+    }
+  }
+
+  // 💸 -50€ — shake + red flash
+  function fx_minus() {
+    document.body.classList.add('red-flash');
+    effectTimers.push(setTimeout(() => {
+      document.body.classList.remove('red-flash');
+      document.body.classList.add('shaking');
+      effectTimers.push(setTimeout(() => document.body.classList.remove('shaking'), 700));
+    }, 120));
+  }
+
+  // 🌈 Rainbow — cycling background
+  function fx_rainbow() {
+    document.body.classList.add('rainbow-mode');
+    effectTimers.push(setTimeout(() => document.body.classList.remove('rainbow-mode'), 3300));
+  }
+
+  // 🎆 Fireworks — multiple canvas bursts
+  function fx_fireworks() {
+    const cols = ['#ff69b4','#e91e8c','#ffd700','#00d4ff','#80ff60','#ff8c00','#d960ff'];
+    let count = 0;
+    function burst() {
+      const x = window.innerWidth  * (.18 + Math.random() * .64);
+      const y = window.innerHeight * (.12 + Math.random() * .42);
+      const c = cols[Math.floor(Math.random() * cols.length)];
+      for (let i = 0; i < 36; i++) {
+        const p = new Particle(x, y, c, { speed: 13, vy0: 0, gravity: .18, minR: 2, rRange: 4 });
+        fxParts.push(p);
+      }
+      kickFx();
+      if (++count < 7) effectTimers.push(setTimeout(burst, 400));
+    }
+    burst();
+  }
+
+  // 🐱 Cats — flying parade
+  function fx_cats() {
+    for (let i = 0; i < 9; i++) {
+      effectTimers.push(setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'fly-el';
+        const dur = (1.6 + Math.random() * 1.6).toFixed(2);
+        el.textContent = '🐱';
+        el.style.cssText = `top:${8+Math.random()*72}vh;left:-80px;font-size:${1.6+Math.random()*2.4}rem;--dur:${dur}s`;
+        flyBox.appendChild(el);
+        effectTimers.push(setTimeout(() => el.remove(), parseFloat(dur)*1000 + 300));
+      }, i * 220));
+    }
+  }
+
+  // 🔄 Again — cheerful pulse on the spin button area
+  function fx_again() {
+    const btn = document.getElementById('spin-btn');
+    btn.style.transform = 'scale(1.18)';
+    effectTimers.push(setTimeout(() => { btn.style.transform = ''; }, 250));
+  }
+
+  // 💫 Dizzy — main content wobbles
+  function fx_dizzy() {
+    const mc = document.getElementById('main-content');
+    mc.classList.add('dizzy');
+    effectTimers.push(setTimeout(() => mc.classList.remove('dizzy'), 1400));
+  }
+  </script>
+</body>
+</html>

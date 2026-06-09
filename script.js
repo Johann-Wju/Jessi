@@ -97,14 +97,19 @@ function placeIcons() {
   });
 }
 
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+function navigate(url) {
+  document.body.style.transition = 'opacity .35s';
+  document.body.style.opacity    = '0';
+  setTimeout(() => { window.location.href = url; }, 360);
+}
+
 // ── Click handling ────────────────────────────────────────────────────────────
 
 function handleClick(isCat) {
   if (isCat) {
-    // Brief flash before navigating
-    document.body.style.transition = 'opacity .4s';
-    document.body.style.opacity = '0';
-    setTimeout(() => { window.location.href = 'game.html'; }, 400);
+    document.getElementById('win-screen').classList.add('visible');
   } else {
     const msg = WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
     showToast(msg);
