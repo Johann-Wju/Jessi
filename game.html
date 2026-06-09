@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alles Gute, Jessi! 🎉</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0008;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .cat {
+      font-size: 6rem;
+      animation: bounce 1.2s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px rgba(255, 105, 180, 0.6));
+    }
+
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #e91e8c, #ff9de2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p {
+      color: rgba(255, 182, 220, 0.45);
+      font-size: 1rem;
+      letter-spacing: 1px;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-18px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="cat">🐱</div>
+  <h1>Du hast die Katze gefunden!</h1>
+  <p>Das Spiel kommt bald&nbsp;…</p>
+</body>
+</html>
