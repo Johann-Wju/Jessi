@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katzen-Sprint – Jessi! 🐱</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0008;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      overflow: hidden;
+      padding: 16px 16px 70px;
+      user-select: none;
+    }
+
+    header { text-align: center; }
+    .header-emoji {
+      font-size: 2.4rem;
+      display: block;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 0 18px rgba(255,105,180,.55));
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #e91e8c, #ff9de2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      margin-top: 4px;
+      color: rgba(255,182,220,.5);
+      font-size: .8rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    #canvas-wrap {
+      position: relative;
+      width: min(860px, 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,105,180,.25);
+      box-shadow:
+        0 0 0 1px rgba(255,105,180,.08),
+        0 8px 32px rgba(233,30,140,.3),
+        0 0 60px rgba(255,105,180,.08);
+    }
+
+    #score-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: min(860px, 100%);
+    }
+
+    .score-label {
+      color: rgba(255,182,220,.55);
+      font-size: .8rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #progress-track {
+      flex: 1;
+      height: 10px;
+      background: rgba(255,105,180,.12);
+      border-radius: 99px;
+      overflow: visible;
+      position: relative;
+      border: 1px solid rgba(255,105,180,.2);
+    }
+
+    #progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #e91e8c, #ff9de2);
+      box-shadow: 0 0 10px rgba(233,30,140,.6);
+      width: 0%;
+      transition: width .3s ease;
+    }
+
+    #score-num {
+      font-size: 1.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #e91e8c, #ff9de2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    #tap-hint {
+      color: rgba(255,182,220,.45);
+      font-size: .78rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+      transition: opacity .4s;
+    }
+
+    /* Nav buttons */
+    .nav-btn {
+      position: fixed; bottom: 22px; z-index: 500;
+      background: rgba(255,105,180,.08);
+      border: 1.5px solid rgba(255,105,180,.3);
+      color: rgba(255,182,220,.75);
+      padding: 10px 22px; border-radius: 50px;
+      font-size: .88rem; font-weight: 600;
+      cursor: pointer; letter-spacing: .5px;
+      transition: background .2s, border-color .2s, transform .15s;
+      backdrop-filter: blur(6px);
+    }
+    .nav-btn:hover {
+      background: rgba(255,105,180,.2);
+      border-color: rgba(255,105,180,.65);
+      transform: translateY(-2px);
+    }
+    .nav-back { left: 22px; }
+    .nav-fwd  { right: 22px; }
+
+    /* Hit flash overlay */
+    #hit-flash {
+      position: absolute; inset: 0; border-radius: 12px;
+      background: rgba(255, 50, 100, 0.35);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .05s;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="header-emoji">🐱</span>
+    <h1>Katzen-Sprint</h1>
+    <p class="subtitle">Leertaste oder Tippen zum Springen</p>
+  </header>
+
+  <div id="score-bar">
+    <span class="score-label">Punkte</span>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <span id="score-num">0 / 20</span>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="gameCanvas" width="860" height="280"></canvas>
+    <div id="hit-flash"></div>
+  </div>
+
+  <p id="tap-hint">Leertaste · Klick · Touch → Springen</p>
+
+  <button class="nav-btn nav-back" onclick="navigate('maze.html')">←&nbsp;Zurück</button>
+
+  <script>
+  const canvas  = document.getElementById('gameCanvas');
+  const ctx     = canvas.getContext('2d');
+  const flash   = document.getElementById('hit-flash');
+  const progFill = document.getElementById('progress-fill');
+  const scoreNum = document.getElementById('score-num');
+  const tapHint  = document.getElementById('tap-hint');
+
+  // ── Constants ──────────────────────────────────────────────────────────────
+  const GND     = 216;   // ground surface Y
+  const GRAVITY = 0.62;
+  const JFORCE  = -14.5;
+  const CAT_X   = 110;
+  const CAT_W   = 62;
+  const CAT_H   = 52;
+  const WIN     = 20;
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  let catY      = GND - CAT_H;
+  let catVY     = 0;
+  let onGround  = true;
+  let score     = 0;
+  let speed     = 5;
+  let frame     = 0;
+  let obstacles = [];
+  let invFrames = 0;   // invincibility frames after hit
+  let started   = false;
+  let won       = false;
+
+  // ── Starfield ──────────────────────────────────────────────────────────────
+  const stars = Array.from({length: 90}, () => ({
+    x: Math.random() * 860,
+    y: Math.random() * (GND * 0.85),
+    r: Math.random() * 1.4 + 0.3,
+    phase: Math.random() * Math.PI * 2,
+  }));
+
+  // Road dashes offset
+  let dashOff = 0;
+
+  // ── Input ──────────────────────────────────────────────────────────────────
+  function tryJump() {
+    if (won) return;
+    if (!started) { started = true; tapHint.style.opacity = '0'; }
+    if (onGround) {
+      catVY     = JFORCE;
+      onGround  = false;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); tryJump(); }
+  });
+  canvas.addEventListener('click', tryJump);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); tryJump(); }, {passive: false});
+
+  // ── Obstacle types ─────────────────────────────────────────────────────────
+  const OBS_TYPES = [
+    { w: 82, h: 50, type: 'car',   color: '#c0336e' },
+    { w: 82, h: 50, type: 'car',   color: '#7733cc' },
+    { w: 82, h: 50, type: 'car',   color: '#1166cc' },
+    { w: 108, h: 64, type: 'truck', color: '#996600' },
+    { w: 108, h: 64, type: 'truck', color: '#226644' },
+    { w: 54,  h: 38, type: 'bike',  color: '#aa2244' },
+  ];
+
+  function spawnObs() {
+    const t = OBS_TYPES[Math.floor(Math.random() * OBS_TYPES.length)];
+    obstacles.push({
+      x: 880,
+      y: GND - t.h,
+      w: t.w,
+      h: t.h,
+      type: t.type,
+      color: t.color,
+      scored: false,
+    });
+  }
+
+  // ── Drawing helpers ────────────────────────────────────────────────────────
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    ctx.fill();
+  }
+
+  function drawBackground() {
+    // Sky
+    const skyG = ctx.createLinearGradient(0, 0, 0, GND);
+    skyG.addColorStop(0, '#0d0008');
+    skyG.addColorStop(1, '#1c0018');
+    ctx.fillStyle = skyG;
+    ctx.fillRect(0, 0, 860, GND);
+
+    // Stars
+    frame % 3 === 0 && stars.forEach(s => {
+      s.phase += 0.025;
+      const op = 0.3 + 0.5 * Math.sin(s.phase);
+      ctx.fillStyle = `rgba(255,182,220,${op.toFixed(2)})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Road
+    ctx.fillStyle = '#120010';
+    ctx.fillRect(0, GND, 860, 280 - GND);
+
+    // Glow ground line
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,105,180,.9)';
+    ctx.shadowBlur  = 10;
+    ctx.strokeStyle = 'rgba(255,105,180,.7)';
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GND); ctx.lineTo(860, GND);
+    ctx.stroke();
+    ctx.restore();
+
+    // Road lane dashes
+    dashOff = (dashOff - speed * 1.5 + 3000) % 80;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,105,180,.18)';
+    ctx.lineWidth   = 2;
+    ctx.setLineDash([40, 40]);
+    ctx.lineDashOffset = dashOff;
+    ctx.beginPath();
+    ctx.moveTo(0, GND + 22); ctx.lineTo(860, GND + 22);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawCat(x, y) {
+    const lp = onGround ? Math.sin(frame * 0.22) * 6 : 0;
+    const squish = onGround ? 1 : (catVY < 0 ? 1.08 : 0.94);
+    const squeeze = onGround ? 1 : (catVY < 0 ? 0.92 : 1.06);
+
+    ctx.save();
+    ctx.translate(x + CAT_W / 2, y + CAT_H / 2);
+    ctx.scale(squeeze, squish);
+    ctx.translate(-(CAT_W / 2), -(CAT_H / 2));
+
+    // flash when hit
+    const hitAlpha = invFrames > 0 ? (Math.sin(frame * 0.7) * 0.5 + 0.5) : 1;
+    ctx.globalAlpha = hitAlpha;
+
+    // tail
+    ctx.save();
+    ctx.strokeStyle = '#ff9de2';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    const tailSwing = Math.sin(frame * 0.15) * 8;
+    ctx.beginPath();
+    ctx.moveTo(4, 32);
+    ctx.quadraticCurveTo(-22, 14 + tailSwing, -10, -8 + tailSwing);
+    ctx.stroke();
+    ctx.restore();
+
+    // back legs
+    ctx.fillStyle = '#ffaad4';
+    ctx.beginPath(); ctx.roundRect(5,  40, 11, 12 + lp, 5); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(20, 40, 11, 12 - lp, 5); ctx.fill();
+
+    // body
+    ctx.fillStyle = '#ffb3d9';
+    ctx.beginPath(); ctx.roundRect(2, 18, 42, 26, 10); ctx.fill();
+
+    // front legs
+    ctx.fillStyle = '#ffaad4';
+    ctx.beginPath(); ctx.roundRect(30, 40, 11, 12 - lp, 5); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(44, 40, 11, 12 + lp, 5); ctx.fill();
+
+    // head
+    ctx.fillStyle = '#ffb3d9';
+    ctx.beginPath(); ctx.arc(46, 20, 18, 0, Math.PI * 2); ctx.fill();
+
+    // ears
+    ctx.fillStyle = '#ffb3d9';
+    ctx.beginPath();
+    ctx.moveTo(33, 10); ctx.lineTo(39, -3); ctx.lineTo(46, 8);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(46, 8); ctx.lineTo(54, -3); ctx.lineTo(60, 10);
+    ctx.closePath(); ctx.fill();
+
+    // inner ears
+    ctx.fillStyle = '#e91e8c';
+    ctx.beginPath();
+    ctx.moveTo(36, 9); ctx.lineTo(40, 0); ctx.lineTo(45, 8);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(47, 8); ctx.lineTo(53, 0); ctx.lineTo(58, 9);
+    ctx.closePath(); ctx.fill();
+
+    // eyes
+    ctx.fillStyle = '#0d0008';
+    ctx.beginPath(); ctx.ellipse(40, 18, 3.5, 4.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(52, 18, 3.5, 4.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(41, 16, 1.4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(53, 16, 1.4, 0, Math.PI*2); ctx.fill();
+
+    // nose
+    ctx.fillStyle = '#e91e8c';
+    ctx.beginPath();
+    ctx.moveTo(44, 25); ctx.lineTo(48, 23); ctx.lineTo(48, 27);
+    ctx.closePath(); ctx.fill();
+
+    // mouth
+    ctx.strokeStyle = 'rgba(180,60,100,.8)';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(46, 27); ctx.quadraticCurveTo(42, 31, 40, 29); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(46, 27); ctx.quadraticCurveTo(50, 31, 52, 29); ctx.stroke();
+
+    // whiskers
+    ctx.strokeStyle = 'rgba(255,255,255,.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(41, 25); ctx.lineTo(24, 22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(41, 27); ctx.lineTo(24, 29); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(51, 25); ctx.lineTo(68, 22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(51, 27); ctx.lineTo(68, 29); ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawCar(ob) {
+    const {x, y, w, h, color} = ob;
+
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,.3)';
+    ctx.beginPath();
+    ctx.ellipse(x + w/2, GND + 4, w * 0.45, 6, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // wheels
+    const wr = 12;
+    ctx.fillStyle = '#1a1030';
+    ctx.beginPath(); ctx.arc(x + w*0.21, GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w*0.79, GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.18)';
+    ctx.beginPath(); ctx.arc(x + w*0.21, GND, wr*0.45, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w*0.79, GND, wr*0.45, 0, Math.PI*2); ctx.fill();
+
+    // lower body
+    ctx.fillStyle = color;
+    rr(x, y + h*0.45, w, h*0.55, [0,0,6,6]);
+
+    // upper cabin
+    ctx.fillStyle = color;
+    rr(x + w*0.12, y, w*0.76, h*0.5, [8,8,2,2]);
+
+    // windows
+    ctx.fillStyle = 'rgba(160,220,255,.65)';
+    rr(x + w*0.15, y + h*0.04, w*0.3, h*0.4, 4);
+    rr(x + w*0.52, y + h*0.04, w*0.29, h*0.4, 4);
+
+    // headlight (left side = front for oncoming car)
+    ctx.fillStyle = 'rgba(255,255,180,.9)';
+    ctx.beginPath(); ctx.ellipse(x + 5, y + h*0.68, 4, 5, 0, 0, Math.PI*2); ctx.fill();
+
+    // tail light
+    ctx.fillStyle = 'rgba(255,80,80,.8)';
+    ctx.beginPath(); ctx.ellipse(x + w - 5, y + h*0.68, 4, 5, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawTruck(ob) {
+    const {x, y, w, h, color} = ob;
+
+    ctx.fillStyle = 'rgba(0,0,0,.3)';
+    ctx.beginPath();
+    ctx.ellipse(x + w/2, GND + 5, w * 0.45, 7, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    const wr = 13;
+    ctx.fillStyle = '#1a1030';
+    ctx.beginPath(); ctx.arc(x + w*0.18, GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w*0.5,  GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w*0.82, GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.18)';
+    [x + w*0.18, x + w*0.5, x + w*0.82].forEach(cx => {
+      ctx.beginPath(); ctx.arc(cx, GND, wr*0.45, 0, Math.PI*2); ctx.fill();
+    });
+
+    // cargo body
+    ctx.fillStyle = color;
+    rr(x + w*0.3, y, w*0.7, h, [4,4,4,4]);
+
+    // cab
+    ctx.fillStyle = shadeColor(color, 20);
+    rr(x, y + h*0.25, w*0.35, h*0.75, [6,0,0,6]);
+
+    // cab window
+    ctx.fillStyle = 'rgba(160,220,255,.65)';
+    rr(x + w*0.03, y + h*0.3, w*0.27, h*0.38, 4);
+
+    ctx.fillStyle = 'rgba(255,255,180,.9)';
+    ctx.beginPath(); ctx.ellipse(x + 5, y + h*0.72, 4, 5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,80,80,.8)';
+    ctx.beginPath(); ctx.ellipse(x + w - 5, y + h*0.72, 4, 5, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawBike(ob) {
+    const {x, y, w, h, color} = ob;
+
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath();
+    ctx.ellipse(x + w/2, GND + 3, w*0.4, 5, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    const wr = 11;
+    ctx.fillStyle = '#1a1030';
+    ctx.beginPath(); ctx.arc(x + w*0.2, GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w*0.8, GND, wr, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.2)';
+    ctx.beginPath(); ctx.arc(x + w*0.2, GND, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w*0.8, GND, 5, 0, Math.PI*2); ctx.fill();
+
+    // frame
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x + w*0.2, GND - wr);
+    ctx.lineTo(x + w*0.5, y + h*0.3);
+    ctx.lineTo(x + w*0.8, GND - wr);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + w*0.5, y + h*0.3);
+    ctx.lineTo(x + w*0.5, y);
+    ctx.stroke();
+
+    // rider
+    ctx.fillStyle = shadeColor(color, 15);
+    ctx.beginPath(); ctx.arc(x + w*0.5, y - 5, 8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = color;
+    rr(x + w*0.35, y + h*0.05, w*0.3, h*0.55, 6);
+  }
+
+  function shadeColor(hex, pct) {
+    const n = parseInt(hex.slice(1), 16);
+    const f = pct / 100;
+    const r = Math.min(255, ((n >> 16) & 0xff) + Math.round(255*f));
+    const g = Math.min(255, ((n >> 8)  & 0xff) + Math.round(255*f));
+    const b = Math.min(255, ( n        & 0xff) + Math.round(255*f));
+    return `#${((r<<16)|(g<<8)|b).toString(16).padStart(6,'0')}`;
+  }
+
+  function drawObstacle(ob) {
+    if (ob.type === 'car')   drawCar(ob);
+    if (ob.type === 'truck') drawTruck(ob);
+    if (ob.type === 'bike')  drawBike(ob);
+  }
+
+  // ── Score UI ───────────────────────────────────────────────────────────────
+  function updateScoreUI() {
+    const pct = Math.max(0, Math.min(100, (score / WIN) * 100));
+    progFill.style.width = pct + '%';
+    scoreNum.textContent = `${Math.max(0,score)} / ${WIN}`;
+  }
+
+  // ── Hit flash ──────────────────────────────────────────────────────────────
+  function triggerFlash() {
+    flash.style.opacity = '1';
+    setTimeout(() => { flash.style.opacity = '0'; }, 120);
+    setTimeout(() => { flash.style.opacity = '1'; }, 200);
+    setTimeout(() => { flash.style.opacity = '0'; }, 320);
+  }
+
+  // ── Collision ──────────────────────────────────────────────────────────────
+  function hitbox() {
+    return {
+      l: CAT_X + 14,
+      r: CAT_X + 54,
+      t: catY + 6,
+      b: catY + CAT_H - 2,
+    };
+  }
+
+  function obsHitbox(ob) {
+    return {
+      l: ob.x + 6,
+      r: ob.x + ob.w - 6,
+      t: ob.y + 4,
+      b: ob.y + ob.h,
+    };
+  }
+
+  function collides(a, b) {
+    return a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+  }
+
+  // ── Spawn timing ──────────────────────────────────────────────────────────
+  let nextSpawn = 180;
+
+  function tick() {
+    if (won) return;
+
+    frame++;
+
+    if (!started) {
+      drawBackground();
+      drawCat(CAT_X, catY);
+      requestAnimationFrame(tick);
+      return;
+    }
+
+    // Physics
+    catVY += GRAVITY;
+    catY  += catVY;
+    if (catY >= GND - CAT_H) {
+      catY     = GND - CAT_H;
+      catVY    = 0;
+      onGround = true;
+    }
+
+    // Move obstacles
+    for (const ob of obstacles) ob.x -= speed;
+
+    // Spawn
+    if (frame >= nextSpawn) {
+      spawnObs();
+      nextSpawn = frame + 110 + Math.floor(Math.random() * 80) - Math.floor(score * 1.5);
+      nextSpawn = Math.max(nextSpawn, frame + 70);
+    }
+
+    // Score + collision
+    if (invFrames > 0) invFrames--;
+
+    for (const ob of obstacles) {
+      if (!ob.scored && ob.x + ob.w < CAT_X) {
+        ob.scored = true;
+        score++;
+        speed = 5 + score * 0.18;
+        updateScoreUI();
+        if (score >= WIN) { won = true; winGame(); return; }
+      }
+      if (invFrames === 0 && collides(hitbox(), obsHitbox(ob))) {
+        score = Math.max(0, score - 1);
+        invFrames = 80;
+        speed = 5 + score * 0.18;
+        updateScoreUI();
+        triggerFlash();
+      }
+    }
+
+    // Remove offscreen
+    obstacles = obstacles.filter(ob => ob.x + ob.w > -20);
+
+    // Draw
+    ctx.clearRect(0, 0, 860, 280);
+    drawBackground();
+    obstacles.forEach(drawObstacle);
+    drawCat(CAT_X, catY);
+
+    // Score on canvas
+    ctx.font = 'bold 15px Segoe UI';
+    ctx.fillStyle = 'rgba(255,182,220,.5)';
+    ctx.textAlign = 'right';
+    ctx.fillText(`Score: ${Math.max(0,score)}`, 848, 22);
+
+    requestAnimationFrame(tick);
+  }
+
+  // ── Win ────────────────────────────────────────────────────────────────────
+  function winGame() {
+    // Draw final frame with celebration text
+    ctx.clearRect(0, 0, 860, 280);
+    drawBackground();
+    drawCat(CAT_X, catY);
+
+    ctx.font = 'bold 36px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(255,105,180,.9)';
+    ctx.shadowBlur = 20;
+    ctx.fillText('🎉 Geschafft! 🎉', 430, 130);
+    ctx.shadowBlur = 0;
+
+    setTimeout(() => navigate('final.html'), 1400);
+  }
+
+  // ── Navigate ───────────────────────────────────────────────────────────────
+  function navigate(url) {
+    document.body.style.transition = 'opacity .35s';
+    document.body.style.opacity    = '0';
+    setTimeout(() => { window.location.href = url; }, 360);
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  updateScoreUI();
+  requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
