@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <link rel="stylesheet" href="../shared/shared.css">
+  <link rel="stylesheet" href="game4.css">
+</head>
+<body>
+
+  <!-- Star field background canvas (z-index:0; content lifted to z-index:1) -->
+  <canvas id="star-canvas"></canvas>
+
+  <!-- Page heading -->
+  <header>
+    <span class="header-emoji">🐱</span>
+    <h1></h1>
+    <p class="subtitle"></p>
+  </header>
+
+  <!-- Maze canvas (sized dynamically by game4.js) -->
+  <div id="maze-wrap"><canvas id="maze"></canvas></div>
+
+  <!-- Keyboard controls hint -->
+  <p class="controls"></p>
+
+  <!-- Win overlay (shown when the exit is reached) -->
+  <div id="win-screen">
+    <div class="ws-emoji">🎉</div>
+    <div class="ws-title" id="win-title"></div>
+    <p class="ws-sub" id="win-sub"></p>
+    <button class="ws-btn" id="btn-next"></button>
+  </div>
+
+  <!-- Navigation -->
+  <button class="nav-btn nav-back" id="nav-back"></button>
+  <button class="nav-btn nav-fwd"  id="nav-fwd"></button>
+
+  <script src="../shared/stars.js"></script>
+  <script src="game4.js"></script>
+</body>
+</html>

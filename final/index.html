@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <link rel="stylesheet" href="../shared/shared.css">
+  <link rel="stylesheet" href="final.css">
+</head>
+<body>
+
+  <!-- Particle animation canvas (confetti rain + fireworks) -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Central congratulations card -->
+  <div id="card">
+
+    <!-- Ambient glow halo behind content -->
+    <div class="ring"></div>
+
+    <!-- Decorative emoji row (content set by final.js TEXT constant) -->
+    <div class="emoji-row" id="emoji-row"></div>
+
+    <!-- "Herzlichen Glückwunsch" -->
+    <div class="congrats" id="congrats"></div>
+
+    <!-- "Jessi!" -->
+    <div class="name" id="name"></div>
+
+    <!-- Birthday message box -->
+    <div class="message-box">
+      <div class="msg-hint" id="msg-hint"></div>
+      <div class="divider"></div>
+      <!-- Edit the message text in final.js inside the TEXT.message constant -->
+      <p class="msg-text" id="msg-text"></p>
+      <div class="divider"></div>
+    </div>
+
+    <!-- Star decoration row -->
+    <div class="star-row" id="star-row"></div>
+
+  </div>
+
+  <script src="final.js"></script>
+</body>
+</html>

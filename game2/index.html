@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <link rel="stylesheet" href="../shared/shared.css">
+  <link rel="stylesheet" href="game2.css">
+</head>
+<body>
+
+  <!-- Star field background canvas -->
+  <canvas id="star-canvas"></canvas>
+
+  <!-- Page heading -->
+  <header>
+    <span class="header-emoji">🐱</span>
+    <h1></h1>
+    <p class="subtitle"></p>
+  </header>
+
+  <!-- Live stats bar: move count and pairs found -->
+  <div class="stats">
+    <div><span class="stat-label" id="lbl-moves"></span> <strong id="moves">0</strong></div>
+    <div><span class="stat-label" id="lbl-found"></span> <strong id="found">0</strong> <span id="lbl-of"></span></div>
+  </div>
+
+  <!-- Card grid (populated by game2.js) -->
+  <div id="grid"></div>
+
+  <!-- Navigation -->
+  <button class="nav-btn nav-back" id="nav-back"></button>
+  <button class="nav-btn nav-fwd"  id="nav-fwd"></button>
+
+  <!-- Win overlay (shown when all pairs are matched) -->
+  <div id="win-screen">
+    <div class="ws-emoji">🎉</div>
+    <div class="ws-title" id="win-title"></div>
+    <p class="ws-sub" id="win-sub"></p>
+    <button class="ws-btn" id="btn-next"></button>
+  </div>
+
+  <script src="../shared/stars.js"></script>
+  <script src="game2.js"></script>
+</body>
+</html>

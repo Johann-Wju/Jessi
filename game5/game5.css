@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════
+   game5.css  ·  Cat Runner Game (Game 5) – specific styles
+   Shared base styles are in shared.css
+   ═══════════════════════════════════════ */
+
+/* ── Body layout: centred column, no scroll, no text selection ───────────── */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  padding: 8px 16px 70px;
+  user-select: none;
+}
+
+/* ── Star background canvas (behind everything) ──────────────────────────── */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+header { text-align: center; }
+
+/* ── Game canvas wrapper (responsive max-width) ──────────────────────────── */
+#canvas-wrap {
+  position: relative;
+  width: min(860px, 100%);
+}
+
+/* ── Game canvas ─────────────────────────────────────────────────────────── */
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 105, 180, 0.25);
+  box-shadow:
+    0 0  0  1px rgba(255, 105, 180, 0.08),
+    0 8px 32px   rgba(233,  30, 140, 0.3),
+    0 0 60px     rgba(255, 105, 180, 0.08);
+}
+
+/* ── Score bar (label + progress track + number) ─────────────────────────── */
+#score-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(860px, 100%);
+}
+
+.score-label {
+  color: rgba(255, 182, 220, 0.55);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Progress bar track */
+#progress-track {
+  flex: 1;
+  height: 10px;
+  background: rgba(255, 105, 180, 0.12);
+  border-radius: 99px;
+  overflow: visible;
+  position: relative;
+  border: 1px solid rgba(255, 105, 180, 0.2);
+}
+
+/* Animated progress fill */
+#progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #e91e8c, #ff9de2);
+  box-shadow: 0 0 10px rgba(233, 30, 140, 0.6);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* Numeric score display */
+#score-num {
+  font-size: 1.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #e91e8c, #ff9de2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* ── Jump hint text (fades out once game starts) ─────────────────────────── */
+#tap-hint {
+  color: rgba(255, 182, 220, 0.45);
+  font-size: 0.78rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  transition: opacity 0.4s;
+}
+
+/* ── Red flash overlay when the cat is hit ───────────────────────────────── */
+#hit-flash {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: rgba(255, 50, 100, 0.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.05s;
+}

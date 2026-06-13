@@ -1,0 +1,59 @@
+/* ═══════════════════════════════════════
+   game4.css  ·  Maze Game (Game 4) – specific styles
+   Shared base styles are in shared.css
+   ═══════════════════════════════════════ */
+
+/* ── Body layout: centred column, no scroll ──────────────────────────────── */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 16px 16px 70px;
+}
+
+/* ── Star background canvas (z-index:0 so content can sit above it) ──────── */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Lift interactive content above the star canvas */
+header, #maze-wrap, .controls {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+header { text-align: center; }
+
+/* ── Maze canvas wrapper – adds border and glow ──────────────────────────── */
+#maze-wrap {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow:
+    0 0  0  2px rgba(255, 105, 180, 0.28),
+    0 0 50px    rgba(255, 105, 180, 0.14),
+    0 0 90px    rgba(233,  30, 140, 0.07);
+}
+
+/* The maze canvas itself */
+canvas#maze { display: block; }
+
+/* ── Keyboard controls hint text ─────────────────────────────────────────── */
+.controls {
+  color: rgba(255, 182, 220, 0.38);
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── Win screen (overrides shared to sit above the z-index:0 star canvas) ── */
+#win-screen {
+  z-index: 400;
+}

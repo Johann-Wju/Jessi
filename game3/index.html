@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <link rel="stylesheet" href="../shared/shared.css">
+  <link rel="stylesheet" href="game3.css">
+</head>
+<body>
+
+  <!-- Star field background canvas -->
+  <canvas id="star-canvas"></canvas>
+
+  <!-- Confetti / money-rain particle canvas -->
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- Explosion particle canvas (shown only during explosion effect) -->
+  <canvas id="explosion-canvas"></canvas>
+
+  <!-- White flash overlay (briefly shown at start of explosion) -->
+  <div id="explosion-flash"></div>
+
+  <!-- Container for falling DOM-element effects (cats, capybaras, money) -->
+  <div id="fx-flying"></div>
+
+  <!-- "Du bist toll!" pulsing text overlay -->
+  <div id="toll-overlay"><div id="toll-text"></div></div>
+
+  <!-- Jackpot win screen (shown when JACKPOT segment lands) -->
+  <div id="jackpot-screen">
+    <div class="ws-emoji">🏆</div>
+    <div class="ws-title" id="jackpot-title"></div>
+    <p class="ws-sub" id="jackpot-sub"></p>
+    <button class="ws-btn" id="jackpot-btn"></button>
+  </div>
+
+  <!-- Navigation -->
+  <button class="nav-btn nav-back" id="nav-back"></button>
+  <button class="nav-btn nav-fwd"  id="nav-fwd"></button>
+
+  <!-- Main wheel UI -->
+  <div id="main-content">
+    <header>
+      <h1></h1>
+      <p class="subtitle"></p>
+    </header>
+
+    <div class="wheel-wrap">
+      <!-- Pointer triangle above the wheel indicates the landing segment -->
+      <div class="wheel-pointer">▼</div>
+      <canvas id="wheel" width="500" height="500"></canvas>
+    </div>
+
+    <button id="spin-btn"></button>
+  </div>
+
+  <script src="../shared/stars.js"></script>
+  <script src="game3.js"></script>
+</body>
+</html>

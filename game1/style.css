@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════
+   style.css  ·  Game 1 – Flashlight / Find-the-Cat (specific styles)
+   Shared base styles are in shared.css
+   ═══════════════════════════════════════ */
+
+/* ── Body overrides for fullscreen flashlight game ───────────────────────── */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: none;   /* custom cursor replaces default */
+}
+
+/* ── Star canvas (z-index:1 so stars show through the flashlight hole) ────── */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;   /* unique to game 1 — stars visible beneath the overlay cutout */
+}
+
+/* ── Dark overlay with the flashlight hole (radial gradient mask) ─────────── */
+#overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  /* Default centre position; updated live by JS mousemove */
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 182, 220, 0.04)  0px,
+    transparent               80px,
+    rgba(13, 0, 8, 0.88)     150px,
+    rgba(13, 0, 8, 0.98)     200px,
+    #0d0008                  240px
+  );
+}
+
+/* ── Custom cursor – glowing ring ────────────────────────────────────────── */
+#cursor-ring {
+  position: fixed;
+  width: 38px;
+  height: 38px;
+  border: 2.5px solid rgba(255, 105, 180, 0.9);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 200;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 10px 3px  rgba(255, 105, 180, 0.45),
+    0 0 22px 6px  rgba(255, 105, 180, 0.18),
+    inset 0 0 6px rgba(255, 105, 180, 0.1);
+  left: -100px;   /* hidden before first mouse move */
+  top:  -100px;
+}
+
+/* ── Custom cursor – centre dot ──────────────────────────────────────────── */
+#cursor-dot {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  background: #ff69b4;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 201;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px 3px rgba(255, 105, 180, 0.7);
+  left: -100px;
+  top:  -100px;
+}
+
+/* ── Icons container (covers the whole viewport) ────────────────────────── */
+#icons-container {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+/* ── Individual icon ─────────────────────────────────────────────────────── */
+.icon {
+  position: absolute;
+  font-size: 2.4rem;
+  cursor: none;
+  user-select: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  line-height: 1;
+}
+
+.icon:hover {
+  transform: scale(1.3) rotate(-6deg);
+  filter: drop-shadow(0 0 8px rgba(255, 105, 180, 0.7));
+}
+
+/* ── Toast notification pill ─────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #e91e8c, #ff6fa8);
+  color: #fff;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  z-index: 300;
+  box-shadow:
+    0 4px 20px rgba(233, 30, 140, 0.55),
+    0 0   40px rgba(255, 105, 180, 0.25);
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.toast.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Hint text at top of screen – neon glow ──────────────────────────────── */
+#hint {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ff1aaa;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 300;
+  white-space: nowrap;
+  text-shadow:
+    0 0  6px #ff1aaa,
+    0 0 18px rgba(255, 26, 170, 0.95),
+    0 0 40px rgba(255, 26, 170, 0.7),
+    0 0 80px rgba(255, 26, 170, 0.4);
+}

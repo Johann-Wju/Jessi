@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════
+   game3.css  ·  Lucky Wheel Game (Game 3) – specific styles
+   Shared base styles are in shared.css
+   ═══════════════════════════════════════ */
+
+/* ── Body layout: centred column, no scroll ──────────────────────────────── */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+/* ── Star background canvas (behind everything) ──────────────────────────── */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Particle effect canvas (confetti / money rain) ──────────────────────── */
+#fx-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ── Container for falling DOM-element effects ───────────────────────────── */
+#fx-flying {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 95;
+}
+
+/* ── "Du bist toll!" full-screen text overlay ────────────────────────────── */
+#toll-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 120;
+  align-items: center;
+  justify-content: center;
+}
+
+#toll-overlay.visible { display: flex; }
+
+#toll-text {
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: 900;
+  color: #ff1aaa;
+  text-shadow:
+    0 0  30px rgba(255, 26, 170, 0.9),
+    0 0  60px rgba(255, 26, 170, 0.5),
+    0 0 100px rgba(255, 26, 170, 0.3);
+  text-align: center;
+  animation: toll-pulse 1.4s ease-in-out infinite;
+  user-select: none;
+}
+
+@keyframes toll-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+header { text-align: center; }
+
+/* ── Wheel wrapper (centres the pointer above the canvas) ────────────────── */
+.wheel-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive wheel canvas */
+#wheel {
+  width:  min(80vw, 76vh, 440px);
+  height: min(80vw, 76vh, 440px);
+  border-radius: 50%;
+  display: block;
+  box-shadow:
+    0 0  0  5px rgba(255, 105, 180, 0.25),
+    0 0 50px     rgba(255, 105, 180, 0.18),
+    0 0 90px     rgba(233,  30, 140, 0.1);
+}
+
+/* Triangular pointer above the wheel */
+.wheel-pointer {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  line-height: 1;
+  z-index: 20;
+  color: #ff69b4;
+  filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.9));
+}
+
+/* ── Spin button ─────────────────────────────────────────────────────────── */
+#spin-btn {
+  background: linear-gradient(135deg, #e91e8c, #ff6fa8);
+  color: #fff;
+  border: none;
+  padding: 15px 46px;
+  border-radius: 50px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 22px rgba(233, 30, 140, 0.5), 0 0 40px rgba(255, 105, 180, 0.18);
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+#spin-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(233, 30, 140, 0.65), 0 0 50px rgba(255, 105, 180, 0.28);
+}
+
+#spin-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Falling / flying DOM element animation ──────────────────────────────── */
+.fall-el {
+  position: absolute;
+  pointer-events: none;
+  animation: fall-down var(--dur, 2.5s) ease-in forwards;
+}
+
+@keyframes fall-down {
+  from { opacity: 1; transform: translateY(0) rotate(0deg); }
+  to   { opacity: 0.4; transform: translateY(110vh) rotate(720deg); }
+}
+
+/* ── Rainbow background cycle (10 s) ─────────────────────────────────────── */
+@keyframes rainbow-cycle {
+  0%   { background-color: #0d0008; }
+  10%  { background-color: #200040; }
+  20%  { background-color: #002060; }
+  30%  { background-color: #003020; }
+  40%  { background-color: #402000; }
+  50%  { background-color: #400030; }
+  60%  { background-color: #002050; }
+  70%  { background-color: #200040; }
+  80%  { background-color: #402000; }
+  90%  { background-color: #003020; }
+  100% { background-color: #0d0008; }
+}
+
+body.rainbow-mode {
+  animation: rainbow-cycle 10s ease-in-out forwards;
+}
+
+/* ── Lasagne emoji elements (scattered around screen) ────────────────────── */
+.lasagne-el {
+  position: fixed;
+  pointer-events: none;
+  z-index: 92;
+  font-size: clamp(2rem, 5vw, 4rem);
+  animation: lasagne-appear 0.4s ease forwards;
+}
+
+@keyframes lasagne-appear {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Explosion particle canvas (full-screen, initially hidden) ───────────── */
+#explosion-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 105;
+  display: none;
+}
+
+/* ── White flash overlay for explosion effect ────────────────────────────── */
+#explosion-flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.08s;
+}
+
+/* ── Jackpot win screen (same structure as shared #win-screen) ───────────── */
+#jackpot-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 0, 8, 0.95);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 40px;
+}
+
+#jackpot-screen.visible {
+  display: flex;
+  animation: ws-appear 0.45s ease forwards;
+}
+
+/* ── Main content wrapper (wheel + header + button) ──────────────────────── */
+#main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* ── Jessi Stinkt: toxic green overlay ───────────────────────────────────── */
+#stink-effect-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 115;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(10, 60, 0, 0.28);
+  backdrop-filter: blur(1px);
+}
+
+/* Main stink text — large, neon green, wobbling */
+.stink-text {
+  font-size: clamp(3rem, 12vw, 7rem);
+  font-weight: 900;
+  color: #7fff00;
+  letter-spacing: 4px;
+  text-align: center;
+  text-shadow:
+    0 0  20px #00ff00,
+    0 0  50px rgba(0, 255, 0, 0.65),
+    0 0 100px rgba(0, 255, 0, 0.35);
+  animation: stink-wobble 0.4s ease-in-out infinite alternate;
+  user-select: none;
+}
+
+/* Subtitle below the stink text */
+.stink-sub {
+  font-size: 1.2rem;
+  color: rgba(160, 255, 60, 0.8);
+  letter-spacing: 2px;
+  font-style: italic;
+  user-select: none;
+}
+
+@keyframes stink-wobble {
+  from { transform: rotate(-3deg) scale(1);    }
+  to   { transform: rotate( 3deg) scale(1.04); }
+}

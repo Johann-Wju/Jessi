@@ -1,0 +1,156 @@
+/* ═══════════════════════════════════════
+   shared.css  ·  Styles shared across ALL pages
+   ═══════════════════════════════════════ */
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Base body ───────────────────────────────────────────────────────────── */
+body {
+  background: #0d0008;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Header emoji ────────────────────────────────────────────────────────── */
+.header-emoji {
+  font-size: 2.8rem;
+  display: block;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 0 18px rgba(255, 105, 180, 0.55));
+}
+
+/* ── Gradient page heading ───────────────────────────────────────────────── */
+h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #e91e8c, #ff9de2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Subtitle / label beneath heading ───────────────────────────────────── */
+.subtitle {
+  margin-top: 5px;
+  color: rgba(255, 182, 220, 0.5);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ── Navigation buttons (fixed, pill-shaped, translucent) ────────────────── */
+.nav-btn {
+  position: fixed;
+  bottom: 22px;
+  z-index: 500;
+  background: rgba(255, 105, 180, 0.08);
+  border: 1.5px solid rgba(255, 105, 180, 0.3);
+  color: rgba(255, 182, 220, 0.75);
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  backdrop-filter: blur(6px);
+}
+
+.nav-btn:hover {
+  background: rgba(255, 105, 180, 0.2);
+  border-color: rgba(255, 105, 180, 0.65);
+  transform: translateY(-2px);
+}
+
+/* Anchor positions */
+.nav-back { left:  22px; }
+.nav-fwd  { right: 22px; }
+
+/* ── Win / transition overlay ────────────────────────────────────────────── */
+#win-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 0, 8, 0.95);
+  z-index: 400;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 40px;
+}
+
+#win-screen.visible {
+  display: flex;
+  animation: ws-appear 0.45s ease forwards;
+}
+
+/* ── Win screen components ───────────────────────────────────────────────── */
+.ws-emoji {
+  font-size: 5rem;
+  animation: ws-bounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 22px rgba(255, 105, 180, 0.6));
+}
+
+.ws-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #e91e8c, #ff9de2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ws-sub {
+  color: rgba(255, 182, 220, 0.6);
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.ws-btn {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #e91e8c, #ff6fa8);
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(233, 30, 140, 0.5);
+  transition: transform 0.15s;
+}
+
+.ws-btn:hover { transform: translateY(-2px); }
+
+/* Ghost (secondary) action button */
+.ws-btn-ghost {
+  background: transparent;
+  border: 1.5px solid rgba(255, 105, 180, 0.4);
+  color: rgba(255, 182, 220, 0.8);
+  padding: 10px 28px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.ws-btn-ghost:hover { border-color: rgba(255, 105, 180, 0.8); }
+
+/* ── Win screen animations ───────────────────────────────────────────────── */
+@keyframes ws-appear {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ws-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-18px); }
+}

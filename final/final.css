@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════
+   final.css  ·  Final Congratulations Screen – specific styles
+   Shared base styles are in shared.css
+   ═══════════════════════════════════════ */
+
+/* ── Body: full viewport, no overflow ───────────────────────────────────── */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Particle / animation canvas behind everything ───────────────────────── */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Central card that holds all congratulations content ─────────────────── */
+#card {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  z-index: 10;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+/* ── Glowing halo ring behind card content ───────────────────────────────── */
+.ring {
+  position: absolute;
+  width: min(540px, 90vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(233, 30, 140, 0.12) 0%,
+    rgba(255, 105, 180, 0.06) 40%,
+    transparent 70%);
+  filter: blur(30px);
+  animation: ring-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(0.95); opacity: 0.7; }
+  50%       { transform: scale(1.08); opacity: 1; }
+}
+
+/* ── Decorative emoji row ────────────────────────────────────────────────── */
+.emoji-row {
+  font-size: 2.8rem;
+  letter-spacing: 8px;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 18px rgba(255, 105, 180, 0.7));
+  opacity: 0;
+  /* Two animations combined: fade-up on load, then gentle float forever */
+  animation: fade-up 0.8s 0.2s forwards, float-row 2.8s 0.2s ease-in-out infinite;
+}
+
+/* ── "Herzlichen Glückwunsch" heading ────────────────────────────────────── */
+.congrats {
+  font-size: clamp(1.4rem, 5vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ff69b4, #e91e8c, #ff9de2, #ffb3d9);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite, fade-up 0.8s 0.5s both;
+  margin-bottom: 8px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ── Name display (large, gradient) ─────────────────────────────────────── */
+.name {
+  font-size: clamp(3.5rem, 12vw, 7rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  background: linear-gradient(135deg, #fff 10%, #ffb3d9 40%, #e91e8c 70%, #ff9de2 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite, fade-up 0.9s 0.7s both;
+  filter: drop-shadow(0 0 30px rgba(233, 30, 140, 0.5));
+  margin-bottom: 32px;
+}
+
+/* ── Birthday message box ────────────────────────────────────────────────── */
+.message-box {
+  position: relative;
+  max-width: min(620px, 92vw);
+  background: rgba(255, 105, 180, 0.06);
+  border: 1.5px solid rgba(255, 105, 180, 0.25);
+  border-radius: 20px;
+  padding: 28px 36px;
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0  0  1px rgba(255, 105, 180, 0.07),
+    0 8px 40px  rgba(233,  30, 140, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: fade-up 1s 0.9s both;
+  margin-bottom: 30px;
+}
+
+/* Decorative ambient glow blobs */
+.message-box::before,
+.message-box::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.message-box::before {
+  width: 120px; height: 120px;
+  top: -40px; right: -30px;
+  background: radial-gradient(circle, rgba(255, 105, 180, 0.2), transparent 70%);
+  filter: blur(10px);
+}
+
+.message-box::after {
+  width: 80px; height: 80px;
+  bottom: -25px; left: -20px;
+  background: radial-gradient(circle, rgba(233, 30, 140, 0.2), transparent 70%);
+  filter: blur(8px);
+}
+
+/* ── "Nachricht" label hint ───────────────────────────────────────────────── */
+.msg-hint {
+  font-size: 0.72rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 105, 180, 0.4);
+  margin-bottom: 10px;
+}
+
+/* ── Birthday message body text ─────────────────────────────────────────── */
+/* Edit the message content in final.js inside the TEXT constant */
+.msg-text {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  line-height: 1.75;
+  color: rgba(255, 220, 240, 0.92);
+  font-style: italic;
+  letter-spacing: 0.3px;
+  white-space: pre-line;   /* respect newlines in the TEXT constant */
+}
+
+/* ── Horizontal divider line ─────────────────────────────────────────────── */
+.divider {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e91e8c, transparent);
+  margin: 14px auto;
+  border-radius: 99px;
+}
+
+/* ── Star row decoration ─────────────────────────────────────────────────── */
+.star-row {
+  font-size: 1.4rem;
+  letter-spacing: 6px;
+  color: rgba(255, 105, 180, 0.7);
+  animation: fade-up 1s 1.1s both;
+}
+
+/* ── Shared keyframes ────────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float-row {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alles Gute, Jessi!</title>
+  <link rel="stylesheet" href="../shared/shared.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Star field rendered behind flashlight overlay (z-index:1) -->
+  <canvas id="star-canvas"></canvas>
+
+  <!-- Flashlight overlay: dark mask with radial cutout that follows the cursor -->
+  <div id="overlay"></div>
+
+  <!-- Custom cursor elements (ring + centre dot) -->
+  <div id="cursor-ring"></div>
+  <div id="cursor-dot"></div>
+
+  <!-- Icons placed randomly by script.js -->
+  <div id="icons-container"></div>
+
+  <!-- Toast notification for wrong clicks -->
+  <div id="toast" class="toast hidden"><span id="toast-text"></span></div>
+
+  <!-- Hint text at the top of the screen -->
+  <p id="hint"></p>
+
+  <!-- Win overlay (shown when the cat is found) -->
+  <div id="win-screen">
+    <div class="ws-emoji">🐱</div>
+    <div class="ws-title"></div>
+    <p class="ws-sub"></p>
+    <button class="ws-btn" id="btn-next"></button>
+  </div>
+
+  <!-- Forward navigation button -->
+  <button class="nav-btn nav-fwd" id="nav-fwd"></button>
+
+  <script src="../shared/stars.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════
+   game2.css  ·  Memory Card Game (Game 2) – specific styles
+   Shared base styles are in shared.css
+   ═══════════════════════════════════════ */
+
+/* ── Body layout for scrollable centred column ───────────────────────────── */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 40px;
+  gap: 18px;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+header { text-align: center; }
+
+/* ── Stats bar (moves / found counters) ──────────────────────────────────── */
+.stats {
+  display: flex;
+  gap: 36px;
+  font-size: 0.9rem;
+  color: rgba(255, 182, 220, 0.6);
+  letter-spacing: 1px;
+}
+
+.stats strong {
+  color: #ff69b4;
+  font-size: 1.15rem;
+}
+
+/* ── Card grid (4-column) ────────────────────────────────────────────────── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* ── Individual card shell ───────────────────────────────────────────────── */
+.card {
+  aspect-ratio: 1;
+  perspective: 700px;
+  cursor: pointer;
+}
+
+/* ── Inner container that flips ─────────────────────────────────────────── */
+.card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Flip card when .flipped or .matched is applied */
+.card.flipped  .card-inner,
+.card.matched  .card-inner { transform: rotateY(180deg); }
+
+/* ── Common card face styles ─────────────────────────────────────────────── */
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ── Back face (face-down side) ──────────────────────────────────────────── */
+.card-back {
+  background: linear-gradient(145deg, #28001a, #480030);
+  border: 2px solid rgba(255, 105, 180, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Decorative inner pattern on the back face */
+.card-back-inner {
+  width: 54%;
+  height: 54%;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255,105,180,.12), rgba(255,105,180,.04));
+  border: 1.5px solid rgba(255, 105, 180, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: rgba(255, 105, 180, 0.45);
+}
+
+/* Hover glow on unmatched, unflipped cards */
+.card:not(.matched):not(.flipped):hover .card-back {
+  border-color: rgba(255, 105, 180, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 18px rgba(255, 105, 180, 0.22);
+}
+
+/* ── Front face (face-up / emoji side) ───────────────────────────────────── */
+.card-front {
+  background: linear-gradient(145deg, #1c000f, #30001e);
+  border: 2px solid rgba(255, 105, 180, 0.45);
+  transform: rotateY(180deg);
+  font-size: 2rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+}
+
+/* Matched card gets a pink glow */
+.card.matched .card-front {
+  border-color: rgba(255, 105, 180, 0.9);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.5),
+    0 0 28px rgba(255, 105, 180, 0.45),
+    inset 0 0 18px rgba(255, 105, 180, 0.08);
+}
+
+/* ── Star background canvas (behind everything) ──────────────────────────── */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Win screen (overrides shared #win-screen z-index for this page) ─────── */
+#win-screen {
+  z-index: 200;
+}
+
+.ws-sub strong { color: #ff69b4; }
+
+/* ── Responsive: tighter grid on small screens ───────────────────────────── */
+@media (max-width: 420px) {
+  #grid { gap: 8px; }
+  .card-front { font-size: 1.5rem; }
+}
